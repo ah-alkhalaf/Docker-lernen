@@ -1,0 +1,69 @@
+# Docker-lernen lab: one SSH-able Linux box per friend (sessions 1-5).
+#   docker compose up -d --build
+#   ssh -p 2201 student@<host>        (box-1)   2202 -> box-2, ...
+#
+# All boxes share the network "labnet", so they can reach each other by
+# service name (box-1, box-2, ...). This is used in session 5.
+name: docker-lernen-lab
+
+x-box: &box
+  build: .
+  init: true                 # reaps zombie processes (session 4)
+  restart: unless-stopped
+  networks: [labnet]
+  # Resource limits so one friend cannot starve the host.
+  mem_limit: 512m
+  cpus: 0.5
+  pids_limit: 256
+  # Drop every Linux capability, then add back only what sshd, sudo, cron
+  # and useradd need. If something fails with "Operation not permitted",
+  # the error tells you which capability is missing - a good lesson itself.
+  cap_drop: [ALL]
+  cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID, SYS_CHROOT, KILL, AUDIT_WRITE, NET_RAW]
+  # NOTE: "no-new-privileges" is intentionally NOT set: it would break sudo.
+
+services:
+  box-1:
+    <<: *box
+    hostname: box-1
+    ports: ["${BIND_ADDR:-0.0.0.0}:2201:22"]
+    environment:
+      STUDENT_PASSWORD: ${BOX1_PASSWORD:-}
+      PUBLIC_KEY: ${BOX1_PUBLIC_KEY:-}
+    volumes: ["home-box-1:/home/student"]
+
+  box-2:
+    <<: *box
+    hostname: box-2
+    ports: ["${BIND_ADDR:-0.0.0.0}:2202:22"]
+    environment:
+      STUDENT_PASSWORD: ${BOX2_PASSWORD:-}
+      PUBLIC_KEY: ${BOX2_PUBLIC_KEY:-}
+    volumes: ["home-box-2:/home/student"]
+
+  box-3:
+    <<: *box
+    hostname: box-3
+    ports: ["${BIND_ADDR:-0.0.0.0}:2203:22"]
+    environment:
+      STUDENT_PASSWORD: ${BOX3_PASSWORD:-}
+      PUBLIC_KEY: ${BOX3_PUBLIC_KEY:-}
+    volumes: ["home-box-3:/home/student"]
+
+  box-4:
+    <<: *box
+    hostname: box-4
+    ports: ["${BIND_ADDR:-0.0.0.0}:2204:22"]
+    environment:
+      STUDENT_PASSWORD: ${BOX4_PASSWORD:-}
+      PUBLIC_KEY: ${BOX4_PUBLIC_KEY:-}
+    volumes: ["home-box-4:/home/student"]
+
+networks:
+  labnet:
+
+volumes:
+  home-box-1:
+  home-box-2:
+  home-box-3:
+  home-box-4:

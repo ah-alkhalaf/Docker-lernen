@@ -1,0 +1,4 @@
+:80 {
+	# "app" is the Compose service name, 8000 is the container's internal port.
+	reverse_proxy app:8000
+}

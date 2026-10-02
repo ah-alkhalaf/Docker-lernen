@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Usage: lab-check N     (N = session number 1..5)
+set -uo pipefail
+DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)/check"
+n="${1:-}"
+if [[ ! "$n" =~ ^[1-5]$ ]]; then
+  echo "Usage: lab-check N   (N = 1..5)"; exit 2
+fi
+exec bash "$DIR/s$n.sh"
