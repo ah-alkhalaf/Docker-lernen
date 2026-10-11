@@ -54,11 +54,11 @@ def index():
         app.logger.error("index: database error: %s", exc)
         return f"<h1>{APP_NAME}</h1><p>Database error: {exc}</p>", 503
     return (
-        f"<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'>"
+        f"<!doctype html><html lang='de'><meta charset='utf-8'>"
         f"<title>{APP_NAME}</title>"
         f"<body style='font-family:sans-serif;max-width:40em;margin:3em auto'>"
         f"<h1>{APP_NAME}</h1>"
-        f"<p>عدد الزيارات: <b>{total}</b></p>"
+        f"<p>Besuche: <b>{total}</b></p>"
         f"<p><a href='/health'>/health</a> · <a href='/api/visits'>/api/visits</a></p>"
         f"</body></html>"
     )

@@ -1,31 +1,31 @@
-# سيناريوهات Break/Fix
+# Break/Fix-Szenarien
 
-أربعة أنظمة معطّلة، لكل منها خطأ واحد مدسوس. مهمتك: **شخّص وأصلح** حتى ينجح `./verify.sh` (من مجلد `startup/`).
+Vier kaputte Systeme, in jedem steckt genau ein eingebauter Fehler. Deine Aufgabe: **diagnostizieren und reparieren**, bis `./verify.sh` durchläuft (aus dem Verzeichnis `startup/`).
 
 ```bash
 cd startup
 cp .env.example .env
-break-fix/run.sh up 01      # شغّل السيناريو
-break-fix/run.sh down 01    # أوقفه قبل الانتقال لغيره
+break-fix/run.sh up 01      # Szenario starten
+break-fix/run.sh down 01    # stoppen, bevor du zum nächsten gehst
 ```
 
-> لا تفتح [`SOLUTIONS.md`](SOLUTIONS.md) قبل أن تحاول جديًّا. أصلح بتعديل **ملف السيناريو** (أو `Caddyfile.03`)، وليس `compose.yaml` الأصلي.
+> Öffne [`SOLUTIONS.md`](SOLUTIONS.md) nicht, bevor du es ernsthaft versucht hast. Repariere, indem du die **Szenario-Datei** änderst (oder `Caddyfile.03`), nicht die originale `compose.yaml`.
 
-| # | الملف | العَرَض |
+| # | Datei | Symptom |
 |---|---|---|
-| 01 | `01-wrong-hostname.yaml` | `up -d` ينتهي برسالة أن الحاوية `app` **unhealthy** ولا يعمل شيء على `localhost:8080`. |
-| 02 | `02-wrong-healthcheck.yaml` | الأمر نفسه: `app` unhealthy. لكن سجلات `app` تقول إن gunicorn يعمل بلا مشاكل! |
-| 03 | `03-bad-gateway.yaml` | كل الحاويات `healthy`، لكن المتصفح يعرض **502 Bad Gateway**. |
-| 04 | `04-port-clash.yaml` | `up -d` يفشل برسالة عن منفذ مستخدم أو محجوز (port is already allocated). |
+| 01 | `01-wrong-hostname.yaml` | `up -d` endet mit der Meldung, dass der Container `app` **unhealthy** ist, und auf `localhost:8080` läuft nichts. |
+| 02 | `02-wrong-healthcheck.yaml` | Dasselbe Bild: `app` ist unhealthy. Aber die Logs von `app` sagen, dass gunicorn einwandfrei läuft! |
+| 03 | `03-bad-gateway.yaml` | Alle Container sind `healthy`, aber der Browser zeigt **502 Bad Gateway**. |
+| 04 | `04-port-clash.yaml` | `up -d` schlägt fehl mit einer Meldung über einen belegten Port (port is already allocated). |
 
-## سيناريو 05: فخّ كلمة المرور (يدوي)
-هذا خطأ يقع فيه المحترفون أيضًا. نفّذ الخطوات بالترتيب:
-1. شغّل المكدّس السليم: `docker compose up -d --build` وتأكد أن `./verify.sh` ينجح.
-2. غيّر `POSTGRES_PASSWORD` في `.env` إلى قيمة جديدة.
-3. `docker compose down` ثم `docker compose up -d` (بدون `-v`).
-4. لماذا صار `app` unhealthy رغم أن الإعدادات "صحيحة"؟ كيف تصلحه بدون خسارة البيانات؟
+## Szenario 05: Die Passwort-Falle (von Hand)
+Dieser Fehler passiert auch Profis. Führe die Schritte der Reihe nach aus:
+1. Starte den heilen Stack: `docker compose up -d --build` und prüfe, dass `./verify.sh` durchläuft.
+2. Ändere `POSTGRES_PASSWORD` in `.env` auf einen neuen Wert.
+3. `docker compose down`, dann `docker compose up -d` (ohne `-v`).
+4. Warum ist `app` jetzt unhealthy, obwohl die Konfiguration "richtig" ist? Wie reparierst du das, ohne Daten zu verlieren?
 
-## تلميحات عامة
+## Allgemeine Tipps
 ```bash
 docker compose ps
 docker compose logs --tail 30 app

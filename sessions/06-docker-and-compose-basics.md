@@ -1,57 +1,57 @@
-# الجلسة 6: Docker وأول ملف Compose
+# Session 6: Docker und die erste Compose-Datei
 
-**المدة:** ساعتان · **المكان:** جهازك أنت (أو خادم فيه Docker) ، وليس صندوق المختبر · **المتطلبات:** الجلسات 1–5
+**Dauer:** 2 Stunden · **Ort:** Dein eigener Rechner (oder ein Server mit Docker), nicht die Lab-Box · **Voraussetzung:** Session 1-5
 
-> تحتاج Docker على جهازك: لينكس مباشرة، أو Docker Desktop (ويندوز/ماك)، أو WSL2. الأمر `docker run --rm hello-world` يجب أن ينجح قبل بدء الجلسة.
+> Du brauchst Docker auf deinem Rechner: unter Linux direkt, oder Docker Desktop (Windows/macOS), oder WSL2. `docker run --rm hello-world` muss vor Beginn der Session durchlaufen.
 
-## الهدف
-أن يفهم الصديق الفرق بين **صورة** و**حاوية**، ويبني صورة لتطبيق، ويكتب أول `compose.yaml` بيده.
+## Ziel
+Der Freund versteht den Unterschied zwischen **Image** und **Container**, baut ein Image für eine Anwendung und schreibt seine erste `compose.yaml` selbst.
 
-## الفكرة في دقيقتين
-- **الصورة (image)**: قالب للقراءة فقط (نظام + برنامج + إعداداته).
-- **الحاوية (container)**: نسخة تعمل من الصورة، معزولة عن غيرها، وتُتلف بسهولة.
-- **Compose**: ملف واحد يصف **عدة** حاويات وشبكاتها وتخزينها، فتشغّل كل شيء بأمر واحد.
-- تذكّر الجلسة 5: الحاويات في Compose تصل لبعضها **بأسماء الخدمات** (كما وصل box-2 إلى box-1).
+## Die Idee in zwei Minuten
+- **Image**: eine Vorlage, nur lesbar (System + Programm + Konfiguration).
+- **Container**: eine laufende Instanz des Images, von anderen isoliert und leicht wegzuwerfen.
+- **Compose**: eine Datei, die **mehrere** Container mit ihren Netzwerken und Volumes beschreibt, sodass ein Befehl alles startet.
+- Erinnerung an Session 5: Container in Compose erreichen sich über die **Dienstnamen** (so wie box-2 die box-1 erreicht hat).
 
-## ورقة الغش
+## Spickzettel
 
-| الأمر | ماذا يفعل |
+| Befehl | Was er tut |
 |---|---|
-| `docker run -d --name web -p 8081:80 nginx:alpine` | شغّل حاوية (المنفذ `مضيف:حاوية`) |
-| `docker ps` / `docker ps -a` | الحاويات العاملة / كلها |
-| `docker logs -f web` | سجلات الحاوية |
-| `docker exec -it web sh` | ادخل إلى حاوية تعمل |
-| `docker stop web && docker rm web` | أوقف ثم احذف |
-| `docker build -t اسم .` | ابنِ صورة من Dockerfile |
-| `docker compose up -d` | شغّل كل الخدمات (`--build` لإعادة البناء) |
-| `docker compose ps` / `logs -f` / `down` | الحالة / السجلات / الإيقاف |
+| `docker run -d --name web -p 8081:80 nginx:alpine` | Container starten (Port `Host:Container`) |
+| `docker ps` / `docker ps -a` | Laufende Container / alle |
+| `docker logs -f web` | Logs des Containers |
+| `docker exec -it web sh` | In einen laufenden Container hineingehen |
+| `docker stop web && docker rm web` | Stoppen und löschen |
+| `docker build -t name .` | Image aus einem Dockerfile bauen |
+| `docker compose up -d` | Alle Dienste starten (`--build` baut neu) |
+| `docker compose ps` / `logs -f` / `down` | Status / Logs / Stoppen |
 
-## شغّل ثم افهم
-1. **أول حاوية:**
+## Erst ausführen, dann verstehen
+1. **Der erste Container:**
    ```bash
    docker run -d --name web -p 8081:80 nginx:alpine
    curl http://localhost:8081
    docker logs web
-   docker exec -it web sh      # ls /usr/share/nginx/html ثم exit
+   docker exec -it web sh      # ls /usr/share/nginx/html, dann exit
    docker stop web && docker rm web
    ```
-2. **ابنِ صورة التطبيق** (من مستودع هذا المشروع):
+2. **Bau das Image der Anwendung** (aus dem Repo dieses Projekts):
    ```bash
    cd startup/app
-   cat Dockerfile                    # اقرأه سطرًا سطرًا
+   cat Dockerfile                    # lies es Zeile für Zeile
    docker build -t startup-app .
    docker run --rm -p 8000:8000 startup-app
    curl http://localhost:8000/health     # {"db":"memory","status":"ok"}
    ```
-   لماذا يعمل التطبيق بلا قاعدة بيانات؟ (ابحث عن `DATABASE_URL` في `app.py`.)
+   Warum läuft die Anwendung ohne Datenbank? (Suche nach `DATABASE_URL` in `app.py`.)
 
-## التحدي: اكتب Compose بنفسك
-أنشئ مجلدًا جديدًا `my-stack/` بجوار `startup/` واكتب فيه `compose.yaml` يشغّل:
-- خدمة `db` من الصورة `postgres:16-alpine` بكلمة مرور تحددها، **وبـ volume مسمّى** حتى لا تضيع البيانات.
-- خدمة `app` تُبنى من `../startup/app`، وتُنشر على المنفذ 8000، ومتغير بيئتها
-  `DATABASE_URL=postgresql://postgres:كلمة_المرور@db:5432/postgres`.
+## Aufgabe: Schreibe Compose selbst
+Lege ein neues Verzeichnis `my-stack/` neben `startup/` an und schreibe darin eine `compose.yaml`, die startet:
+- einen Dienst `db` aus dem Image `postgres:16-alpine` mit einem Passwort deiner Wahl und einem **benannten Volume**, damit die Daten nicht verloren gehen.
+- einen Dienst `app`, gebaut aus `../startup/app`, veröffentlicht auf Port 8000, mit der Umgebungsvariable
+  `DATABASE_URL=postgresql://postgres:dein_passwort@db:5432/postgres`.
 
-هيكل البداية:
+Gerüst zum Start:
 ```yaml
 services:
   db:
@@ -68,23 +68,23 @@ services:
 volumes:
   ???:
 ```
-ثم:
+Dann:
 ```bash
 docker compose up -d --build
 curl http://localhost:8000/health        # {"db":"up",...}
-curl http://localhost:8000/api/visits    # كرّرها: العدّاد يزيد
-docker compose down                      # بدون -v
+curl http://localhost:8000/api/visits    # wiederhole es: der Zähler steigt
+docker compose down                      # ohne -v
 docker compose up -d
-curl http://localhost:8000/api/visits    # هل بقي العدّاد؟ لماذا؟
+curl http://localhost:8000/api/visits    # ist der Zähler noch da? warum?
 ```
-وقد تفشل المحاولة الأولى لأن التطبيق يبدأ قبل جاهزية قاعدة البيانات. هذه مشكلة حقيقية، وحلّها موضوع الجلسة 7.
+Der erste Versuch kann scheitern, weil die Anwendung startet, bevor die Datenbank bereit ist. Das ist ein echtes Problem, und seine Lösung ist das Thema von Session 7.
 
-## أسئلة للنقاش
-- ماذا يحدث للبيانات عند `docker compose down` مقابل `docker compose down -v`؟
-- لماذا نكتب `@db:5432` وليس `@localhost:5432` في `DATABASE_URL`؟
-- ما الفرق بين `ports: "8000:8000"` و`expose`؟
+## Fragen zur Diskussion
+- Was passiert mit den Daten bei `docker compose down` gegenüber `docker compose down -v`?
+- Warum schreiben wir `@db:5432` und nicht `@localhost:5432` in `DATABASE_URL`?
+- Was ist der Unterschied zwischen `ports: "8000:8000"` und `expose`?
 
-## ملاحظات للمعلّم
-- لا تعطِهم الحل الكامل. الجلسة 7 تبدأ بمقارنة حلولهم مع [`startup/compose.yaml`](../startup/compose.yaml).
-- الخطأ الشائع: مسافات YAML (استعملوا مسافتين لا Tab)، وكتابة `localhost` بدل اسم الخدمة.
-- على ويندوز مع WSL2: الأوامر تعمل من داخل توزيعة WSL، وليس من PowerShell فقط.
+## Hinweise für den Lehrer
+- Gib ihnen nicht die fertige Lösung. Session 7 beginnt mit dem Vergleich ihrer Lösungen mit [`startup/compose.yaml`](../startup/compose.yaml).
+- Häufiger Fehler: YAML-Einrückung (zwei Leerzeichen, kein Tab) und `localhost` statt des Dienstnamens.
+- Unter Windows mit WSL2: Die Befehle laufen in der WSL-Distribution, nicht nur in PowerShell.

@@ -26,7 +26,7 @@ def test_visits_increase(client):
 def test_index_renders(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert "الزيارات" in r.get_data(as_text=True)
+    assert "Besuche" in r.get_data(as_text=True)
 
 
 def test_health_fails_when_db_unreachable(monkeypatch):

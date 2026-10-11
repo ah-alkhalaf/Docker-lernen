@@ -1,50 +1,50 @@
-# الجلسة 7: المكدّس الكامل وGit وCI/CD والمراقبة
+# Session 7: Der komplette Stack, Git, CI/CD und Monitoring
 
-**المدة:** ساعتان ونصف · **المكان:** جهازك (Docker) · **المتطلبات:** الجلسة 6
+**Dauer:** 2,5 Stunden · **Ort:** Dein Rechner (Docker) · **Voraussetzung:** Session 6
 
-## الهدف
-أن يشغّل الصديق مكدّسًا واقعيًا (وكيل عكسي + تطبيق + قاعدة بيانات) بشبكات منفصلة وفحوص صحة، ثم يضعه في Git مع **تكامل مستمر**، ويراقبه.
+## Ziel
+Der Freund betreibt einen realistischen Stack (Reverse Proxy + Anwendung + Datenbank) mit getrennten Netzwerken und Healthchecks, bringt ihn mit **Continuous Integration** nach Git und überwacht ihn.
 
-## الجزء 1: قارن حلّك بالحل الجاهز (20 دقيقة)
-افتح [`startup/compose.yaml`](../startup/compose.yaml) وقارنه بما كتبته في الجلسة 6. ماذا أضاف؟
-- `healthcheck` لكل من `db` و`app`، و`depends_on: condition: service_healthy`، أي **انتظر حتى تكون الخدمة جاهزة لا مجرد "بدأت"**.
-- شبكتان: `frontend` و`backend`. قاعدة البيانات في `backend` فقط.
-- متغيرات في `.env` بدل كتابة كلمة المرور في الملف.
-- `caddy` كوكيل عكسي أمام التطبيق، وهو الوحيد المنشور على المضيف.
+## Teil 1: Vergleiche deine Lösung mit der fertigen (20 Minuten)
+Öffne [`startup/compose.yaml`](../startup/compose.yaml) und vergleiche sie mit dem, was du in Session 6 geschrieben hast. Was kommt dazu?
+- `healthcheck` für `db` und `app` und `depends_on: condition: service_healthy`, also **warte, bis der Dienst bereit ist, nicht nur bis er gestartet ist**.
+- Zwei Netzwerke: `frontend` und `backend`. Die Datenbank liegt nur in `backend`.
+- Variablen in `.env` statt des Passworts in der Datei.
+- `caddy` als Reverse Proxy vor der Anwendung, und als Einziges auf dem Host veröffentlicht.
 
-## الجزء 2: شغّله (30 دقيقة)
+## Teil 2: Starte ihn (30 Minuten)
 ```bash
 cd startup
-cp .env.example .env          # غيّر POSTGRES_PASSWORD
+cp .env.example .env          # ändere POSTGRES_PASSWORD
 docker compose up -d --build
-docker compose ps             # انتظر healthy
-./verify.sh                   # فحص آلي
-# افتح http://localhost:8080
+docker compose ps             # warte auf healthy
+./verify.sh                   # automatische Prüfung
+# öffne http://localhost:8080
 ```
-**تجارب لفهم ما حدث:**
+**Versuche, um zu verstehen, was passiert ist:**
 ```bash
-docker compose exec caddy ping -c 1 app     # يعمل: نفس الشبكة frontend
-docker compose exec caddy ping -c 1 db      # يفشل! قاعدة البيانات معزولة عن caddy
+docker compose exec caddy ping -c 1 app     # geht: dasselbe Netzwerk frontend
+docker compose exec caddy ping -c 1 db      # geht nicht! die Datenbank ist von caddy isoliert
 docker compose stop db
-docker compose ps                            # app صار unhealthy بعد قليل
+docker compose ps                            # app wird nach kurzer Zeit unhealthy
 docker compose start db
 ```
-**نسخ احتياطي واستعادة:**
+**Backup und Wiederherstellung:**
 ```bash
 docker compose exec -T db pg_dump -U startup startup > backup.sql
 docker compose exec -T db psql -U startup startup -c "DROP TABLE visits;"
 docker compose exec -T db psql -U startup startup < backup.sql
 ```
-(`backup.sql` يحوي بياناتك، فلا تضعه في Git.)
+(`backup.sql` enthält deine Daten, lege sie also nicht in Git.)
 
-## الجزء 3: Git (30 دقيقة)
-1. انسخ مجلد `startup/` إلى مجلد جديد باسم شركتك وأنشئ فيه مستودعًا: `git init && git add . && git commit -m "first commit"`.
-2. أنشئ مستودعًا على GitHub وادفع إليه (`git remote add origin ... && git push -u origin main`).
-3. تأكد أن `.env` **غير** مرفوع (ملف `.gitignore` يمنعه). كلمات المرور لا تدخل Git أبدًا.
-4. اعمل فرعًا لميزة جديدة: `git switch -c feature/new-page` ثم عدّل `app.py` وادمج عبر Pull Request.
+## Teil 3: Git (30 Minuten)
+1. Kopiere den Ordner `startup/` in einen neuen Ordner mit dem Namen deiner Firma und lege dort ein Repository an: `git init && git add . && git commit -m "first commit"`.
+2. Lege auf GitHub ein Repository an und pushe dorthin (`git remote add origin ... && git push -u origin main`).
+3. Stell sicher, dass `.env` **nicht** hochgeladen wird (die `.gitignore` verhindert das). Passwörter gehören nie in Git.
+4. Lege einen Branch für ein neues Feature an: `git switch -c feature/new-page`, ändere `app.py` und führe es über einen Pull Request zusammen.
 
-## الجزء 4: التكامل المستمر CI (30 دقيقة)
-CI = كل `push` يشغّل اختباراتك تلقائيًا. أنشئ `.github/workflows/ci.yml` في مستودعك:
+## Teil 4: Continuous Integration (30 Minuten)
+CI heißt: Jeder `push` führt deine Tests automatisch aus. Lege `.github/workflows/ci.yml` in deinem Repository an:
 ```yaml
 name: CI
 on: [push, pull_request]
@@ -60,29 +60,29 @@ jobs:
         working-directory: app
       - run: cp .env.example .env && docker compose build
 ```
-اكسر اختبارًا عمدًا (غيّر `"memory"` في `tests/test_app.py`) وادفع، وشاهد علامة ❌ الحمراء في GitHub، ثم أصلحه وشاهد ✅.
-للمثال الأكبر انظر [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) في هذا المستودع.
+Mach absichtlich einen Test kaputt (ändere `"memory"` in `tests/test_app.py`), pushe, und sieh dir das rote ❌ auf GitHub an. Repariere ihn dann und sieh das ✅.
+Das größere Beispiel findest du in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) in diesem Repository.
 
-## الجزء 5: النشر CD والمراقبة (20 دقيقة)
-- **CD** معناه أن الكود الذي نجح في CI يصل للخادم تلقائيًا. الفكرة الأبسط: على الخادم سكربت `deploy.sh` يفعل:
+## Teil 5: Deployment (CD) und Monitoring (20 Minuten)
+- **CD** bedeutet, dass Code, der die CI bestanden hat, automatisch auf den Server kommt. Die einfachste Form: ein Skript `deploy.sh` auf dem Server, das Folgendes tut:
   ```bash
   git pull && docker compose up -d --build && ./verify.sh
   ```
-  **اكتبه بنفسك** بمهارات الجلسة 5 (رموز الخروج، `set -e`). ثم ناقشوا: كيف يُشغَّل تلقائيًا بعد `push`؟ (Webhook، أو GitHub Actions عبر SSH، أو أدوات مثل ArgoCD). لن نبنيه اليوم.
-- **المراقبة:**
+  **Schreib es selbst** mit den Fertigkeiten aus Session 5 (Exit-Codes, `set -e`). Diskutiert dann: Wie wird es nach einem `push` automatisch ausgelöst? (Webhook, GitHub Actions über SSH, oder Werkzeuge wie ArgoCD.) Heute bauen wir das noch nicht.
+- **Monitoring:**
   ```bash
   docker compose --profile monitoring up -d
-  # افتح http://localhost:3001 وأنشئ حسابًا
-  # أضف Monitor من نوع HTTP على:  http://caddy/health
-  docker compose stop app     # شاهد التنبيه!
+  # öffne http://localhost:3001 und lege ein Konto an
+  # füge einen Monitor vom Typ HTTP hinzu auf:  http://caddy/health
+  docker compose stop app     # sieh dir die Benachrichtigung an!
   ```
 
-## أسئلة للنقاش
-- ما الفرق بين `restart: unless-stopped` و`healthcheck`؟ (الأول يعيد الحاوية إن ماتت، والثاني يكتشف أنها "حيّة لكن لا تعمل".)
-- لماذا لا ننشر منفذ قاعدة البيانات على المضيف؟
-- ما الذي يمنعك من دفع كود مكسور للإنتاج؟ (CI ومراجعة الكود والبيئات)
+## Fragen zur Diskussion
+- Was ist der Unterschied zwischen `restart: unless-stopped` und `healthcheck`? (Das Erste startet den Container neu, wenn er stirbt, das Zweite erkennt, dass er "lebt, aber nicht arbeitet".)
+- Warum veröffentlichen wir den Port der Datenbank nicht auf dem Host?
+- Was hindert dich daran, kaputten Code in die Produktion zu pushen? (CI, Code-Review und getrennte Umgebungen.)
 
-## ملاحظات للمعلّم
-- أطول جلسة: يمكن فصل Git/CI في جلسة مستقلة.
-- Uptime Kuma يطلب إنشاء حساب في أول فتح، وهذا طبيعي.
-- أصدقاء بلا حساب GitHub: جهّز لهم الحساب قبل الجلسة.
+## Hinweise für den Lehrer
+- Die längste Session: Git und CI lassen sich in eine eigene Session auslagern.
+- Uptime Kuma verlangt beim ersten Öffnen ein Konto, das ist normal.
+- Für Freunde ohne GitHub-Konto: Lege das Konto vor der Session an.

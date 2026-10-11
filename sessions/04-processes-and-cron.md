@@ -1,63 +1,63 @@
-# الجلسة 4: العمليات والخدمات والجدولة
+# Session 4: Prozesse, Dienste und Zeitsteuerung
 
-**المدة:** ساعتان · **المكان:** صندوق المختبر · **المتطلبات:** الجلسات 1–3
+**Dauer:** 2 Stunden · **Ort:** Lab-Box · **Voraussetzung:** Session 1-3
 
-## الهدف
-أن يرى الصديق ما يعمل على الخادم، ويوقف ما يجب إيقافه، ويجدول مهامه الدورية. هذه مهارات أي مهندس تشغيل.
+## Ziel
+Der Freund sieht, was auf dem Server läuft, stoppt, was gestoppt gehört, und plant seine wiederkehrenden Aufgaben. Das sind Grundfertigkeiten jedes Betriebsingenieurs.
 
-## الفكرة في دقيقتين
-كل برنامج يعمل يسمى **عملية** (process) ولها رقم **PID**. الإيقاف يتم بإرسال **إشارة** (signal): `TERM` (15) تطلب الإنهاء بلطف، و`KILL` (9) تقتل فورًا بلا تنظيف. **cron** خدمة تشغّل أوامر في أوقات محددة.
+## Die Idee in zwei Minuten
+Jedes laufende Programm heißt **Prozess** und hat eine **PID**. Beendet wird über ein **Signal**: `TERM` (15) bittet höflich um Beendigung, `KILL` (9) beendet sofort und ohne Aufräumen. **cron** ist ein Dienst, der Befehle zu festgelegten Zeiten ausführt.
 
-## ورقة الغش
+## Spickzettel
 
-| الأمر | ماذا يفعل |
+| Befehl | Was er tut |
 |---|---|
-| `ps aux` | كل العمليات (`ps aux \| grep اسم` للبحث) |
-| `top` / `htop` | عرض حي للعمليات (`q` للخروج) |
-| `pgrep -af اسم` | ابحث عن عملية بالاسم واعرض أمرها |
-| `kill PID` / `kill -9 PID` | أوقف بلطف / اقتل |
-| `pkill -f اسم` | أوقف بالاسم |
-| `أمر &` / `jobs` / `fg` | شغّل في الخلفية / اعرض / أعد للمقدمة |
-| `nohup أمر &` | شغّل ولا تتوقف عند إغلاق الطرفية |
-| `crontab -e` / `crontab -l` | عدّل / اعرض جدول مهامك |
+| `ps aux` | Alle Prozesse (`ps aux \| grep name` zum Suchen) |
+| `top` / `htop` | Live-Ansicht der Prozesse (`q` beendet) |
+| `pgrep -af name` | Prozess über den Namen finden und seinen Befehl zeigen |
+| `kill PID` / `kill -9 PID` | Höflich beenden / hart beenden |
+| `pkill -f name` | Über den Namen beenden |
+| `befehl &` / `jobs` / `fg` | Im Hintergrund starten / anzeigen / in den Vordergrund holen |
+| `nohup befehl &` | Starten und beim Schließen des Terminals weiterlaufen lassen |
+| `crontab -e` / `crontab -l` | Eigene Zeitplanung bearbeiten / anzeigen |
 
-صيغة cron: `دقيقة ساعة يوم شهر يوم-الأسبوع أمر` ، مثال `*/5 * * * * /home/student/backup.sh` = كل 5 دقائق.
+cron-Format: `Minute Stunde Tag Monat Wochentag Befehl`, Beispiel `*/5 * * * * /home/student/backup.sh` = alle 5 Minuten.
 
-## شغّل ثم افهم
-1. `ps aux | head` ثم `htop`. من هو PID رقم 1؟
-2. جرّب الخلفية:
+## Erst ausführen, dann verstehen
+1. `ps aux | head`, dann `htop`. Wer ist PID 1?
+2. Probiere den Hintergrund:
    ```bash
    sleep 300 &
    jobs
    ps aux | grep sleep
    kill %1
    ```
-3. الفرق بين الإشارتين: شغّل `sleep 300 &` ثم `kill -15 PID`، وكرّر مع `kill -9 PID`.
-4. اقرأ `man 5 crontab` سريعًا، ثم جرّب `crontab -e` بسطر `* * * * * date >> ~/cron-test.log` وانتظر دقيقة.
+3. Der Unterschied zwischen den Signalen: starte `sleep 300 &`, dann `kill -15 PID`, und wiederhole das mit `kill -9 PID`.
+4. Überfliege `man 5 crontab`, probiere dann `crontab -e` mit der Zeile `* * * * * date >> ~/cron-test.log` und warte eine Minute.
 
-## التحدي
-1. **عملية هاربة:** يعمل في صندوقك سكربت اسمه `bad-job.sh` يكتب في `~/challenges/s4/bad-job.log` كل 5 ثوانٍ. اعثر عليه وأوقفه (وتأكد أنه توقف فعلًا).
-2. **نسخ احتياطي مجدول:** اكتب `~/backup.sh` يضغط مجلد `~/startup` في `~/backups/` باسم فيه التاريخ، واجعله قابلًا للتنفيذ.
+## Aufgabe
+1. **Entlaufener Prozess:** In deiner Box läuft ein Skript namens `bad-job.sh`, das alle 5 Sekunden in `~/challenges/s4/bad-job.log` schreibt. Finde es und stoppe es (und überzeuge dich, dass es wirklich weg ist).
+2. **Geplantes Backup:** Schreibe `~/backup.sh`, das den Ordner `~/startup` nach `~/backups/` packt, mit dem Datum im Namen, und mache es ausführbar.
    ```bash
    #!/usr/bin/env bash
    mkdir -p ~/backups
    tar czf ~/backups/startup-$(date +%F-%H%M).tar.gz -C ~ startup
    ```
-3. جدوِله بـ `crontab -e` ليعمل كل 5 دقائق.
+3. Plane es mit `crontab -e` alle 5 Minuten ein.
 
-## تحقق
+## Prüfen
 ```bash
 lab-check 4
 ```
 
-## أسئلة للنقاش
-- متى تستعمل `kill -9`؟ وما الذي تخسره عندها؟
-- ماذا يحدث لمهمة cron إذا فشلت؟ أين ترى مخرجاتها؟ (تلميح: أضف `>> ~/backup.log 2>&1`)
-- ما الفرق بين عملية وخدمة؟
+## Fragen zur Diskussion
+- Wann benutzt du `kill -9`? Und was verlierst du dabei?
+- Was passiert mit einem cron-Job, wenn er fehlschlägt? Wo siehst du seine Ausgabe? (Tipp: hänge `>> ~/backup.log 2>&1` an.)
+- Was ist der Unterschied zwischen einem Prozess und einem Dienst?
 
-## عن systemd
-في الصندوق الافتراضي **لا يوجد systemd** (الحاويات لا تشغّله عادة). في الخوادم الحقيقية تُدار الخدمات بـ `systemctl status|start|stop|enable nginx` وتُقرأ سجلاتها بـ `journalctl -u nginx`. إن أردت تدريبًا حيًّا على systemd فاقرأ [`docs/sysbox.md`](../docs/sysbox.md).
+## Zu systemd
+In der Standard-Box gibt es **kein systemd** (Container starten es normalerweise nicht). Auf echten Servern werden Dienste mit `systemctl status|start|stop|enable nginx` verwaltet und ihre Logs mit `journalctl -u nginx` gelesen. Wenn du live mit systemd üben willst, lies [`docs/sysbox.md`](../docs/sysbox.md).
 
-## ملاحظات للمعلّم
-- cron يعمل دقيقيًا، فاترك 5 دقائق للانتظار في الجلسة ليروا الملف الناتج يظهر.
-- الخطأ الشائع في cron: المسارات النسبية، فاستعملوا مسارات كاملة دائمًا.
+## Hinweise für den Lehrer
+- cron läuft minütlich, plane also 5 Minuten Wartezeit in der Session ein, damit sie die entstehende Datei sehen.
+- Häufiger Fehler in cron: relative Pfade. Immer vollständige Pfade verwenden.

@@ -1,59 +1,60 @@
-# دليل المعلّم
+# Lehrerhandbuch
 
-## ما تحتاجه
-- **جهاز لينكس واحد** يعمل كمضيف للمختبر (لابتوب قديم، أو VPS صغير): Docker Engine و Docker Compose v2.
-- لتشغيل 4 صناديق: تقدير عملي **2 vCPU و4 GB RAM** كحدّ أدنى مريح (كل صندوق محدود بـ 512 MB و0.5 CPU في `compose.yaml`). هذه أرقام تقديرية، فقس الاستهلاك الفعلي بـ `docker stats`.
-- لكل صديق: برنامج SSH (`ssh` موجود في لينكس وماك وويندوز 10+)، و**من الجلسة 6** Docker على جهازه.
+## Was du brauchst
+- **Einen Linux-Rechner** als Host für das Lab (ein altes Notebook oder ein kleiner VPS): Docker Engine und Docker Compose v2.
+- Für 4 Boxen: als praktische Schätzung mindestens **2 vCPU und 4 GB RAM** (jede Box ist in der `compose.yaml` auf 512 MB und 0,5 CPU begrenzt). Das sind Richtwerte, miss den tatsächlichen Verbrauch mit `docker stats`.
+- Für jeden Freund: ein SSH-Programm (`ssh` gibt es unter Linux, macOS und Windows 10+), und **ab Session 6** Docker auf seinem eigenen Rechner.
 
-## التشغيل
+## Starten
 ```bash
 git clone https://github.com/ah-alkhalaf/Docker-lernen.git && cd Docker-lernen
-cp .env.example .env       # اختياري: كلمات مرور ثابتة أو مفاتيح SSH
+cp .env.example .env       # optional: feste Passwörter oder SSH-Schlüssel
 make up
-make passwords             # كلمات المرور المولّدة عشوائيًا
+make passwords             # die zufällig erzeugten Passwörter
 ```
-يدخل الصديق رقم N عبر: `ssh -p 220N student@عنوان-المضيف` (الأول 2201، الثاني 2202، ...).
+Freund Nummer N meldet sich an mit: `ssh -p 220N student@HOST-ADRESSE` (der erste 2201, der zweite 2202, ...).
 
-## إضافة صديق خامس
-انسخ كتلة `box-4` في `compose.yaml` وسمِّها `box-5`، وغيّر **أربعة أشياء**: الاسم، والـ hostname، والمنفذ (`2205`)، واسم الـ volume (وأضفه في قسم `volumes:` أسفل الملف)، ومتغيرات `BOX5_*` في `.env`. ثم `docker compose up -d`.
+## Einen fünften Freund hinzufügen
+Kopiere den Block `box-4` in der `compose.yaml` und nenne ihn `box-5`. Ändere dann **vier Dinge**: den Namen, den Hostnamen, den Port (`2205`) und den Volume-Namen (und trage ihn unten im Abschnitt `volumes:` ein), dazu die `BOX5_*`-Variablen in `.env`. Danach `docker compose up -d`.
 
-## الوصول من الإنترنت
-**لا تفتح منافذ SSH للصناديق على الإنترنت العام** بكلمات مرور. بدائل أفضل: شبكة خاصة (WireGuard أو Tailscale)، أو الجلسات حضوريًا على الشبكة المحلية. ويمكنك ضبط `BIND_ADDR=127.0.0.1` في `.env` للوصول من الجهاز نفسه فقط.
+## Zugriff aus dem Internet
+**Öffne die SSH-Ports der Boxen nicht mit Passwörtern ins offene Internet.** Bessere Alternativen: ein privates Netz (WireGuard oder Tailscale), oder die Sessions vor Ort im lokalen Netz. Du kannst in `.env` auch `BIND_ADDR=127.0.0.1` setzen, damit nur der Rechner selbst zugreift.
 
-## الأمان: ماذا يحمي وماذا لا يحمي
-- الصناديق **حاويات Docker عادية**، و`root` داخل الحاوية ليس معزولًا بنفس قوة VM. خففنا ذلك بـ `cap_drop: ALL` مع إضافة الحد الأدنى من الصلاحيات، وحدود موارد لكل صندوق، وبلا `--privileged` وبلا `docker.sock`.
-- المستخدم `student` يملك `sudo` كاملًا (ضروري لتعلّم المستخدمين والصلاحيات). لذلك **هذا المختبر لأصدقاء تثق بهم**، وليس لغرباء.
-- `no-new-privileges` غير مفعّل عمدًا لأنه يكسر `sudo`.
-- للعزل الأقوى (وللتدرّب على systemd وDocker داخل الصندوق) انظر [`sysbox.md`](sysbox.md).
+## Sicherheit: Was geschützt ist und was nicht
+- Die Boxen sind **gewöhnliche Docker-Container**, und `root` darin ist nicht so stark isoliert wie in einer VM. Wir haben das abgemildert mit `cap_drop: ALL` und nur den nötigsten Capabilities, mit Ressourcengrenzen pro Box, ohne `--privileged` und ohne `docker.sock`.
+- Der Benutzer `student` hat volles `sudo` (nötig, um Benutzer und Rechte zu lernen). Deshalb ist dieses Lab **für Freunde, denen du vertraust**, und nicht für Fremde.
+- `no-new-privileges` ist bewusst nicht gesetzt, weil es `sudo` kaputtmacht.
+- Für stärkere Isolation (und um systemd und Docker in der Box zu üben) siehe [`sysbox.md`](sysbox.md).
 
-## الجدول المقترح
-| الأسبوع | الجلسة | المكان |
+## Vorgeschlagener Zeitplan
+| Woche | Session | Ort |
 |---|---|---|
-| 1 | [01 أساسيات لينكس](../sessions/01-linux-basics.md) | صندوق |
-| 2 | [02 النصوص والأنابيب](../sessions/02-text-and-pipes.md) | صندوق |
-| 3 | [03 المستخدمون والصلاحيات](../sessions/03-users-and-permissions.md) | صندوق |
-| 4 | [04 العمليات وcron](../sessions/04-processes-and-cron.md) | صندوق |
-| 5 | [05 الشبكات والسكربتات](../sessions/05-networking-and-scripts.md) | صندوقان |
-| 6 | [06 Docker وCompose](../sessions/06-docker-and-compose-basics.md) | جهاز الصديق |
-| 7 | [07 المكدّس وGit وCI](../sessions/07-full-stack-git-ci.md) | جهاز الصديق |
-| 8 | [08 Break/Fix](../sessions/08-break-fix.md) | جهاز الصديق |
+| 1 | [01 Linux-Grundlagen](../sessions/01-linux-basics.md) | Box |
+| 2 | [02 Text und Pipes](../sessions/02-text-and-pipes.md) | Box |
+| 3 | [03 Benutzer und Rechte](../sessions/03-users-and-permissions.md) | Box |
+| 4 | [04 Prozesse und cron](../sessions/04-processes-and-cron.md) | Box |
+| 5 | [05 Netzwerke und Skripte](../sessions/05-networking-and-scripts.md) | Zwei Boxen |
+| 6 | [06 Docker und Compose](../sessions/06-docker-and-compose-basics.md) | Rechner des Freundes |
+| 7 | [07 Stack, Git und CI](../sessions/07-full-stack-git-ci.md) | Rechner des Freundes |
+| 8 | [08 Break/Fix](../sessions/08-break-fix.md) | Rechner des Freundes |
 
-للمبتدئين تمامًا: لا تتجاوز **جلسة كل أسبوع**، وكرّر الجلسة 2 إذا لزم، فالأنابيب هي ما يميّز من سيكمل.
+Für echte Anfänger: nicht mehr als **eine Session pro Woche**, und wiederhole Session 2 ruhig, denn die Pipes entscheiden darüber, wer dranbleibt.
 
-## صيانة الصناديق
-| المهمة | الأمر |
+## Wartung der Boxen
+| Aufgabe | Befehl |
 |---|---|
-| إعادة ضبط صندوق واحد (يمسح تقدّمه) | `docker compose rm -sf box-1 && docker volume rm docker-lernen-lab_home-box-1 && docker compose up -d box-1` |
-| تحديث الصورة بعد تعديل `Dockerfile` أو `lab/` | `docker compose up -d --build` (الصناديق القديمة تحتفظ بملفاتها لأن البيت في volume) |
-| تعديل التحديات لصندوق موجود | احذف `~/.lab-initialized` داخله ثم أعد تشغيله (يُنشئ تحديات جديدة) |
-| إيقاف كل شيء مع الحفاظ على التقدّم | `make down` |
+| Eine Box zurücksetzen (löscht ihren Fortschritt) | `docker compose rm -sf box-1 && docker volume rm docker-lernen-lab_home-box-1 && docker compose up -d box-1` |
+| Image nach Änderungen an `Dockerfile` oder `lab/` aktualisieren | `docker compose up -d --build` (alte Boxen behalten ihre Dateien, weil das Home in einem Volume liegt) |
+| Aufgaben einer bestehenden Box ändern | Lösche darin `~/.lab-initialized` und starte sie neu (erzeugt neue Aufgaben) |
+| Alles stoppen und den Fortschritt behalten | `make down` |
 
-## استكشاف الأعطال
-- **تحذير `REMOTE HOST IDENTIFICATION HAS CHANGED`** بعد إعادة بناء صندوق: مفاتيح SSH للمضيف تتجدد. عند الصديق: `ssh-keygen -R "[HOST]:2201"`.
-- **`Operation not permitted` داخل الصندوق:** نقصت صلاحية (capability) بسبب `cap_drop: ALL`. اقرأ الرسالة وأضف الصلاحية المناسبة في `cap_add` ضمن `compose.yaml`.
-- **الصندوق لا يبدأ:** `docker compose logs box-1`، وابحث عن آخر سطر قبل التوقف.
-- **نسيان كلمة المرور:** `make passwords`، أو حدّدها في `.env` ثم `docker compose up -d --force-recreate box-1`.
-- **منفذ 2201 مستخدم:** غيّر المنفذ في `compose.yaml`.
+## Fehlersuche
+- **Warnung `REMOTE HOST IDENTIFICATION HAS CHANGED`** nach dem Neubau einer Box: Die SSH-Hostschlüssel werden neu erzeugt. Beim Freund: `ssh-keygen -R "[HOST]:2201"`.
+- **`Operation not permitted` in der Box:** Es fehlt eine Capability wegen `cap_drop: ALL`. Lies die Meldung und ergänze die passende Capability unter `cap_add` in der `compose.yaml`.
+- **`chmod` meldet Erfolg, aber das setgid-Bit fehlt** (Session 3): Dem root im Container fehlt `CAP_FSETID`, und dann verwirft der Kernel S_ISGID, wenn der Aufrufer nicht in der Gruppe der Datei ist. Lösung im Unterricht: `sudo -u deploy chmod 2775 /srv/startup`. Das ist ein gutes Beispiel dafür, dass ein Exit-Code von 0 nicht dasselbe ist wie ein geprüftes Ergebnis.
+- **Die Box startet nicht:** `docker compose logs box-1`, und suche die letzte Zeile vor dem Abbruch.
+- **Passwort vergessen:** `make passwords`, oder in `.env` setzen und dann `docker compose up -d --force-recreate box-1`.
+- **Port 2201 belegt:** Ändere den Port in der `compose.yaml`.
 
-## ما الذي اختُبر فعلًا؟
-انظر قسم "ما الذي اختُبر" في [`README.md`](../README.md).
+## Was wurde tatsächlich getestet?
+Siehe den Abschnitt "Was getestet ist" in der [`README.md`](../README.md).

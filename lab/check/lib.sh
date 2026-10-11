@@ -12,6 +12,6 @@ sha_of_file() { tr -d '[:space:]' < "$1" | sha256sum | awk '{print $1}'; }
 EXPECTED="${LAB_EXPECTED_DIR:-/opt/lab/expected}"
 summary() {
   echo
-  if [ "$FAIL" -eq 0 ]; then echo "  ALL DONE: $PASS/$((PASS+FAIL)) checks passed. Great work!"; exit 0
-  else echo "  $PASS/$((PASS+FAIL)) checks passed. Keep going."; exit 1; fi
+  if [ "$FAIL" -eq 0 ]; then echo "  FERTIG: $PASS/$((PASS+FAIL)) Pruefungen bestanden. Gut gemacht!"; exit 0
+  else echo "  $PASS/$((PASS+FAIL)) Pruefungen bestanden. Weiter so."; exit 1; fi
 }

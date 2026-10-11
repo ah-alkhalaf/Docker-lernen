@@ -3,14 +3,14 @@
 # shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib.sh
 source "$(dirname "$0")/lib.sh"
-echo "Session 1 - navigation and files"
+echo "Session 1 - Navigation und Dateien"
 A="$HOME/answers/s1.txt"
-check "answers/s1.txt exists" "write the content of the hidden file into ~/answers/s1.txt" test -s "$A"
+check "answers/s1.txt ist vorhanden" "schreibe den Inhalt der versteckten Datei nach ~/answers/s1.txt" test -s "$A"
 if [ -s "$A" ] && [ "$(sha_of_file "$A")" = "$(cat "$EXPECTED/s1.sha256" 2>/dev/null)" ]; then
-  ok "hidden-file content is correct"
+  ok "Inhalt der versteckten Datei ist richtig"
 else
-  bad "hidden-file content is correct" "files starting with a dot are hidden: try ls -a, or find -name '.*'"
+  bad "Inhalt der versteckten Datei ist richtig" "Dateien mit einem Punkt am Anfang sind versteckt: probiere ls -a oder find -name '.*'"
 fi
-check "~/startup/ directory exists" "mkdir ~/startup" test -d "$HOME/startup"
-check "~/startup/README.md exists" "touch ~/startup/README.md" test -f "$HOME/startup/README.md"
+check "Verzeichnis ~/startup/ ist vorhanden" "mkdir ~/startup" test -d "$HOME/startup"
+check "~/startup/README.md ist vorhanden" "touch ~/startup/README.md" test -f "$HOME/startup/README.md"
 summary

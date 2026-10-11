@@ -1,70 +1,70 @@
 # Docker-lernen 🐳
 
-مختبر عملي لتعليم **لينكس والشبكات وDocker Compose ومنهجية DevOps** لأصدقاء مبتدئين، عبر مشروع واحد يكبر من جلسة إلى أخرى: **شركة ناشئة وهمية**.
+Ein praktisches Lab, um **Linux, Netzwerke, Docker Compose und DevOps-Methodik** an Freunde ohne Vorkenntnisse zu vermitteln, entlang eines Projekts, das von Session zu Session wächst: ein **fiktives Start-up**.
 
-كل صديق يحصل على "خادم لينكس" خاص به (حاوية يدخلها عبر SSH)، يتعلم فيه الأساسيات بتحديات يتحقق منها سكربت تلقائيًا. ثم ينقل خبرته إلى بناء مكدّس حقيقي (Caddy + تطبيق + PostgreSQL) بـ Docker Compose، مع Git وCI وفحوص صحة ومراقبة، وينتهي بجلسة **إصلاح أنظمة معطّلة**.
+Jeder Freund bekommt seinen eigenen "Linux-Server" (einen Container, in den er sich per SSH einloggt) und lernt dort die Grundlagen anhand von Aufgaben, die ein Skript automatisch prüft. Danach überträgt er das Gelernte auf einen echten Stack (Caddy + Anwendung + PostgreSQL) mit Docker Compose, Git, CI, Healthchecks und Monitoring, und zum Abschluss steht eine Session, in der er **kaputte Systeme repariert**.
 
-## تشغيل سريع (للمعلّم)
+## Schnellstart (für den Lehrer)
 
 ```bash
 git clone https://github.com/ah-alkhalaf/Docker-lernen.git && cd Docker-lernen
-make up            # يبني ويشغّل 4 صناديق
-make passwords     # كلمات المرور المولّدة
+make up            # baut und startet 4 Boxen
+make passwords     # die erzeugten Passwörter
 ```
-ثم يدخل الصديق: `ssh -p 2201 student@عنوان-المضيف`، وبعد أي تحدٍّ يكتب `lab-check N` ليعرف هل نجح.
-التفاصيل الكاملة في [دليل المعلّم](docs/teacher-guide.md).
+Danach meldet sich der Freund an: `ssh -p 2201 student@HOST-ADRESSE`, und nach jeder Aufgabe zeigt ihm `lab-check N`, ob sie geklappt hat.
+Alle Details im [Lehrerhandbuch](docs/teacher-guide.md).
 
-## الجلسات
+## Die Sessions
 
-| # | الموضوع | تحقق تلقائي |
+| # | Thema | Automatische Prüfung |
 |---|---|---|
-| 1 | [أساسيات لينكس: SSH والتنقل والملفات](sessions/01-linux-basics.md) | `lab-check 1` |
-| 2 | [النصوص والأنابيب: grep وawk وfind](sessions/02-text-and-pipes.md) | `lab-check 2` |
-| 3 | [المستخدمون والمجموعات والصلاحيات](sessions/03-users-and-permissions.md) | `lab-check 3` |
-| 4 | [العمليات والإشارات وcron](sessions/04-processes-and-cron.md) | `lab-check 4` |
-| 5 | [الشبكات وسكربتات bash](sessions/05-networking-and-scripts.md) | `lab-check 5` |
-| 6 | [Docker وأول ملف Compose](sessions/06-docker-and-compose-basics.md) | يدوي |
-| 7 | [المكدّس الكامل وGit وCI/CD والمراقبة](sessions/07-full-stack-git-ci.md) | `startup/verify.sh` |
-| 8 | [أصلح النظام المعطّل](sessions/08-break-fix.md) | `startup/verify.sh` |
+| 1 | [Linux-Grundlagen: SSH, Navigation, Dateien](sessions/01-linux-basics.md) | `lab-check 1` |
+| 2 | [Text und Pipes: grep, awk, find](sessions/02-text-and-pipes.md) | `lab-check 2` |
+| 3 | [Benutzer, Gruppen und Rechte](sessions/03-users-and-permissions.md) | `lab-check 3` |
+| 4 | [Prozesse, Signale und cron](sessions/04-processes-and-cron.md) | `lab-check 4` |
+| 5 | [Netzwerke und bash-Skripte](sessions/05-networking-and-scripts.md) | `lab-check 5` |
+| 6 | [Docker und die erste Compose-Datei](sessions/06-docker-and-compose-basics.md) | manuell |
+| 7 | [Kompletter Stack, Git, CI/CD und Monitoring](sessions/07-full-stack-git-ci.md) | `startup/verify.sh` |
+| 8 | [Repariere das kaputte System](sessions/08-break-fix.md) | `startup/verify.sh` |
 
-الجلسات 1–5 داخل صناديق المختبر. الجلسات 6–8 على جهاز الصديق (يحتاج Docker).
+Die Sessions 1-5 laufen in den Lab-Boxen. Die Sessions 6-8 laufen auf dem Rechner des Freundes (Docker nötig).
 
-## هيكل المستودع
+## Aufbau des Repositories
 
 ```
 Docker-lernen/
-├── Dockerfile              صورة صندوق المختبر (Ubuntu 24.04 + sshd + أدوات)
-├── compose.yaml            4 صناديق على شبكة labnet
-├── .env.example            كلمات مرور ومفاتيح SSH (اختياري)
+├── Dockerfile              Image der Lab-Box (Ubuntu 24.04 + sshd + Werkzeuge)
+├── compose.yaml            4 Boxen im Netzwerk labnet
+├── .env.example            Passwörter und SSH-Schlüssel (optional)
 ├── Makefile                up / down / passwords / reset / test
-├── lab/                    سكربتات الصندوق: التحديات و lab-check
-├── sessions/               الجلسات الثماني (بالعربية)
-├── startup/                "الشركة الناشئة": تطبيق Flask + Compose + Caddy
-│   ├── app/                  التطبيق واختباراته وDockerfile
-│   ├── compose.yaml          المكدّس الكامل
-│   ├── verify.sh             فحص آلي للمكدّس
-│   └── break-fix/            سيناريوهات الأعطال وحلولها
-├── docs/                   دليل المعلّم وملاحظة Sysbox
+├── lab/                    Skripte der Box: Aufgaben und lab-check
+├── sessions/               Die acht Sessions (auf Deutsch)
+├── startup/                Das "Start-up": Flask-Anwendung + Compose + Caddy
+│   ├── app/                  Anwendung, Tests und Dockerfile
+│   ├── compose.yaml          Der komplette Stack
+│   ├── verify.sh             Automatische Prüfung des Stacks
+│   └── break-fix/            Fehlerszenarien und ihre Lösungen
+├── docs/                   Lehrerhandbuch und Sysbox-Notiz
 └── .github/workflows/      CI
 ```
 
-## الأمان باختصار
-صناديق المختبر حاويات عادية والمستخدم فيها يملك `sudo`، لذا **للأصدقاء الموثوقين فقط ولا تعرّضها للإنترنت العام**. التفاصيل وخيارات العزل الأقوى في [دليل المعلّم](docs/teacher-guide.md).
+## Sicherheit in Kürze
+Die Lab-Boxen sind gewöhnliche Container, und der Benutzer darin hat `sudo`. Deshalb: **nur für Freunde, denen du vertraust, und niemals offen im Internet**. Die Details und stärkere Isolationsoptionen stehen im [Lehrerhandbuch](docs/teacher-guide.md).
 
-## ما الذي اختُبر وما لم يُختبر
+## Was getestet ist und was nicht
 
-أُعدّ المستودع في بيئة **بلا Docker**، لذلك:
+Das Repository ist in einer Umgebung **ohne Docker** entstanden, daher:
 
-**اختُبر فعليًا:**
-- سكربتات التحقق `lab-check` 1 و2 و3 و5 بالحلول الصحيحة والخاطئة، وتوليد ملفات التحديات.
-- تطبيق Flask: 4 اختبارات وحدة ناجحة، وتشغيله بـ gunicorn (نفس أمر الحاوية).
-- صحة كل ملفات YAML (Compose وسيناريوهات Break/Fix) وأن تعديل كل سيناريو مطبَّق، و`shellcheck` نظيف على كل السكربتات.
+**Tatsächlich getestet:**
+- Die Prüfskripte `lab-check` 1, 2, 3 und 5 mit richtigen und falschen Lösungen, und das Erzeugen der Aufgabendateien.
+- Die Flask-Anwendung: 4 erfolgreiche Unit-Tests und der Start mit gunicorn (derselbe Befehl wie im Container).
+- Die Gültigkeit aller YAML-Dateien (Compose und Break/Fix-Szenarien), dass jede Szenario-Änderung angewendet ist, und ein sauberes `shellcheck` über alle Skripte.
 
-**لم يُختبر بعد (سيكشفه أول تشغيل):**
-- **بناء صورة المختبر وتشغيلها**، وخصوصًا قائمة الصلاحيات `cap_add` (قد تحتاج إضافة صلاحية).
-- `lab-check 4` (العمليات وcron) داخل الصندوق الحقيقي.
-- تشغيل `startup/compose.yaml` الكامل، وسيناريوهات Break/Fix (نصوص الأعراض قد تختلف حسب إصدار Docker).
-- **CI على GitHub**: فيه خطوة تبني الصورة وتشغّلها وتجرّب `sudo useradd`. وهي فحص ذاتي مفيد عند أول `push`، فإن فشلت فالسجل يدلّك على الصلاحية الناقصة.
+**Noch nicht getestet (zeigt sich beim ersten Lauf):**
+- **Bauen und Starten des Lab-Images**, vor allem die Liste `cap_add` (eventuell fehlt eine Capability).
+- `lab-check 4` (Prozesse und cron) in der echten Box.
+- Der komplette Lauf von `startup/compose.yaml` und die Break/Fix-Szenarien (die Symptomtexte können je nach Docker-Version abweichen).
+- **CI auf GitHub**: Dort wird das Image gebaut, gestartet und `sudo useradd` ausprobiert. Das ist ein nützlicher Selbsttest beim ersten `push`; schlägt er fehl, zeigt das Log die fehlende Capability.
 
-## الترخيص
-لم يُحدَّد بعد. اختر ترخيصًا مناسبًا (مثل MIT) وأضف ملف `LICENSE` قبل مشاركة المستودع علنًا.
+## Lizenz
+Noch nicht festgelegt. Wähle eine passende Lizenz (zum Beispiel MIT) und füge eine Datei `LICENSE` hinzu, bevor du das Repository öffentlich teilst.

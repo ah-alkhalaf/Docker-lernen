@@ -1,66 +1,66 @@
-# الجلسة 2: النصوص والأنابيب والبحث
+# Session 2: Text, Pipes und Suche
 
-**المدة:** ساعتان · **المكان:** صندوق المختبر · **المتطلبات:** الجلسة 1
+**Dauer:** 2 Stunden · **Ort:** Lab-Box · **Voraussetzung:** Session 1
 
-## الهدف
-أن يعالج الصديق ملفات سجلات حقيقية بأوامر صغيرة تُركَّب معًا: وهذه هي القوة الحقيقية لسطر الأوامر.
+## Ziel
+Der Freund bearbeitet echte Logdateien mit kleinen Befehlen, die sich zusammenstecken lassen. Genau darin liegt die eigentliche Stärke der Kommandozeile.
 
-## الفكرة في دقيقتين
-كل أمر يفعل شيئًا واحدًا بإتقان. **الأنبوب** `|` يمرّر مخرجات أمر إلى مدخلات الأمر التالي، فتبني "خط إنتاج":
+## Die Idee in zwei Minuten
+Jeder Befehl macht eine Sache richtig gut. Die **Pipe** `|` gibt die Ausgabe eines Befehls als Eingabe an den nächsten weiter, so baust du eine "Fertigungsstraße":
 ```bash
 cat access.log | grep 404 | wc -l
 ```
 
-## ورقة الغش
+## Spickzettel
 
-| الأمر | ماذا يفعل |
+| Befehl | Was er tut |
 |---|---|
-| `grep "نص" ملف` | الأسطر التي تحوي النص (`-i` تجاهل حالة الأحرف، `-v` عكس، `-c` عدّ، `-n` أرقام الأسطر، `-r` داخل المجلدات) |
-| `wc -l` | عدد الأسطر |
-| `sort` / `sort -rn` | رتّب / رتّب أرقامًا تنازليًا |
-| `uniq -c` | عُدّ التكرارات (بعد `sort`) |
-| `awk '{print $1}'` | اطبع العمود الأول (`$9` التاسع) |
-| `cut -d' ' -f1` | بديل مبسّط لاستخراج عمود |
-| `find مسار -name "*.log"` | ابحث عن ملفات (`-size +1M`, `-type f`, `-mtime -1`) |
-| `>` / `>>` | اكتب مخرجات في ملف / أضف إلى آخره |
-| `base64 -d` | فك ترميز base64 |
-| `tail -f ملف` | تابع ملفًا ينمو |
+| `grep "Text" Datei` | Zeilen, die den Text enthalten (`-i` Groß-/Kleinschreibung egal, `-v` umkehren, `-c` zählen, `-n` Zeilennummern, `-r` rekursiv) |
+| `wc -l` | Anzahl der Zeilen |
+| `sort` / `sort -rn` | Sortieren / numerisch absteigend sortieren |
+| `uniq -c` | Wiederholungen zählen (nach `sort`) |
+| `awk '{print $1}'` | Erste Spalte ausgeben (`$9` die neunte) |
+| `cut -d' ' -f1` | Einfachere Variante, eine Spalte zu holen |
+| `find Pfad -name "*.log"` | Dateien suchen (`-size +1M`, `-type f`, `-mtime -1`) |
+| `>` / `>>` | Ausgabe in eine Datei schreiben / anhängen |
+| `base64 -d` | base64 dekodieren |
+| `tail -f Datei` | Einer wachsenden Datei folgen |
 
-## شغّل ثم افهم
-1. انظر إلى السجل:
+## Erst ausführen, dann verstehen
+1. Sieh dir das Log an:
    ```bash
    cd ~/challenges/s2
    head -3 access.log
    wc -l access.log
    ```
-   كل سطر طلب HTTP: العمود 1 هو **IP** الزائر، والعمود 9 هو **رمز الاستجابة** (200 نجاح، 404 غير موجود، 500 خطأ خادم).
-2. ابنِ الأنبوب خطوة خطوة وانظر المخرجات بعد كل خطوة:
+   Jede Zeile ist eine HTTP-Anfrage: Spalte 1 ist die **IP** des Besuchers, Spalte 9 der **Statuscode** (200 Erfolg, 404 nicht gefunden, 500 Serverfehler).
+2. Bau die Pipe Schritt für Schritt und sieh dir nach jedem Schritt die Ausgabe an:
    ```bash
    awk '{print $1}' access.log
    awk '{print $1}' access.log | sort
    awk '{print $1}' access.log | sort | uniq -c
    awk '{print $1}' access.log | sort | uniq -c | sort -rn | head -3
    ```
-3. الحفظ في ملف: `awk '$9 == 500' access.log > ~/errors.log` ثم `wc -l ~/errors.log`.
-4. البحث عن ملفات: `find /var/log -type f -size +0` و `find ~ -name "*.txt"`.
+3. In eine Datei speichern: `awk '$9 == 500' access.log > ~/errors.log`, dann `wc -l ~/errors.log`.
+4. Dateien suchen: `find /var/log -type f -size +0` und `find ~ -name "*.txt"`.
 
-## التحدي
-اكتب النتائج في هذه الملفات داخل `~/answers/`:
-1. `s2-top-ip.txt`: عنوان IP **الأكثر تكرارًا** في `access.log`.
-2. `s2-404-count.txt`: **عدد** الطلبات التي كانت استجابتها 404.
-3. `s2-decoded.txt`: الناتج بعد فك ترميز `secret.b64` (الأمر `base64 -d`).
+## Aufgabe
+Schreibe die Ergebnisse in diese Dateien unter `~/answers/`:
+1. `s2-top-ip.txt`: die **häufigste** IP-Adresse in `access.log`.
+2. `s2-404-count.txt`: die **Anzahl** der Anfragen mit Status 404.
+3. `s2-decoded.txt`: das Ergebnis nach dem Dekodieren von `secret.b64` (Befehl `base64 -d`).
 
-## تحقق
+## Prüfen
 ```bash
 lab-check 2
 ```
 
-## أسئلة للنقاش
-- لماذا نحتاج `sort` قبل `uniq -c`؟ (جرّب بدونه.)
-- ما الفرق بين `>` و `>>`؟ ماذا يحدث لو كتبت `>` على ملف مهم؟
-- كيف تستخدم هذه الأنابيب في عمل DevOps؟ (تحليل سجلات، اكتشاف هجوم، عدّ أخطاء)
+## Fragen zur Diskussion
+- Warum brauchen wir `sort` vor `uniq -c`? (Probier es ohne.)
+- Was ist der Unterschied zwischen `>` und `>>`? Was passiert, wenn du `>` auf eine wichtige Datei anwendest?
+- Wo brauchst du solche Pipes in der DevOps-Arbeit? (Logs auswerten, einen Angriff entdecken, Fehler zählen)
 
-## ملاحظات للمعلّم
-- اطلب من كل صديق أن **يتوقع** مخرجات الأنبوب قبل تشغيله.
-- الخطأ الشائع: نسيان `sort` قبل `uniq`، أو استعمال `$8` بدل `$9` (عدّوا الأعمدة معًا).
-- سجل `access.log` يُولَّد بشكل عشوائي لكل صندوق، فنتائج الأصدقاء مختلفة ولا يمكن نسخها من بعضهم.
+## Hinweise für den Lehrer
+- Lass jeden Freund die Ausgabe der Pipe **vorhersagen**, bevor er sie ausführt.
+- Häufiger Fehler: `sort` vor `uniq` vergessen, oder `$8` statt `$9` nehmen (zählt die Spalten gemeinsam durch).
+- Das `access.log` wird pro Box zufällig erzeugt, die Ergebnisse unterscheiden sich also und lassen sich nicht voneinander abschreiben.

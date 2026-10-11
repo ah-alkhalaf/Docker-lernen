@@ -1,41 +1,41 @@
-# الجلسة 5: الشبكات وسكربتات bash
+# Session 5: Netzwerke und bash-Skripte
 
-**المدة:** ساعتان · **المكان:** صندوقان (box-1 وbox-2) · **المتطلبات:** الجلسات 1–4
+**Dauer:** 2 Stunden · **Ort:** Zwei Boxen (box-1 und box-2) · **Voraussetzung:** Session 1-4
 
-## الهدف
-أن يفهم الصديق كيف يتحدث جهازان، وأين يفشل الاتصال، ثم يؤتمت الفحص بسكربت. وهذا أساس فهم الشبكات في Docker لاحقًا.
+## Ziel
+Der Freund versteht, wie zwei Rechner miteinander sprechen und wo die Verbindung scheitert, und automatisiert die Prüfung dann mit einem Skript. Das ist die Grundlage, um später Docker-Netzwerke zu verstehen.
 
-## الفكرة في دقيقتين
-للتواصل تحتاج: **عنوان IP** (من؟) و**منفذ** (أي خدمة؟) و**اسم** يتحول إلى IP عبر **DNS**. الخدمة التي تستمع على `127.0.0.1` لا يراها إلا جهازها، أما `0.0.0.0` فيراها الجميع.
+## Die Idee in zwei Minuten
+Für eine Verbindung brauchst du: eine **IP-Adresse** (wer?), einen **Port** (welcher Dienst?) und einen **Namen**, der über **DNS** zur IP wird. Ein Dienst, der auf `127.0.0.1` lauscht, ist nur auf seinem eigenen Rechner sichtbar, einer auf `0.0.0.0` für alle.
 
-## ورقة الغش
+## Spickzettel
 
-| الأمر | ماذا يفعل |
+| Befehl | Was er tut |
 |---|---|
-| `ip a` / `ip r` | عناوين الواجهات / جدول التوجيه |
-| `ss -tlnp` | المنافذ المفتوحة والمستمعة ومن يستمع |
-| `ping -c 3 هدف` | هل الجهاز يردّ؟ |
-| `curl -v http://هدف:منفذ` | اطلب صفحة وانظر التفاصيل (`-I` ترويسات فقط) |
-| `dig اسم` / `getent hosts اسم` | حوّل الاسم إلى IP |
-| `nc -zv هدف منفذ` | هل المنفذ مفتوح؟ |
-| `cat /etc/hosts /etc/resolv.conf` | ملفات الأسماء ومخدّم DNS |
+| `ip a` / `ip r` | Adressen der Schnittstellen / Routing-Tabelle |
+| `ss -tlnp` | Offene, lauschende Ports und wer dort lauscht |
+| `ping -c 3 ziel` | Antwortet der Rechner? |
+| `curl -v http://ziel:port` | Eine Seite abrufen und die Details sehen (`-I` nur Header) |
+| `dig name` / `getent hosts name` | Namen in eine IP auflösen |
+| `nc -zv ziel port` | Ist der Port offen? |
+| `cat /etc/hosts /etc/resolv.conf` | Namensdateien und DNS-Server |
 
-## شغّل ثم افهم
-1. **من أنا على الشبكة؟** `ip a` (ابحث عن `eth0`)، `hostname`، `cat /etc/resolv.conf`.
-2. **افتح خدمة** في box-1:
+## Erst ausführen, dann verstehen
+1. **Wer bin ich im Netz?** `ip a` (suche `eth0`), `hostname`, `cat /etc/resolv.conf`.
+2. **Öffne einen Dienst** auf box-1:
    ```bash
    cd ~ && echo "hello from box-1" > index.html
    python3 -m http.server 8080 &
-   ss -tlnp | grep 8080          # لاحظ: 0.0.0.0:8080
+   ss -tlnp | grep 8080          # beachte: 0.0.0.0:8080
    curl http://localhost:8080
    ```
-3. **من box-2** (جهاز آخر!): `curl http://box-1:8080`. اسم `box-1` يعمل لأن Docker يوفّر DNS لكل صناديق الشبكة.
-4. **تجربة الاستماع:** أوقف الخدمة (`kill %1`) وأعد تشغيلها مقيَّدة: `python3 -m http.server 8080 --bind 127.0.0.1 &`.
-   اختبر من box-1 (يعمل) ثم من box-2 (يفشل). لماذا؟ نفس الفكرة ستقابلك مع منافذ Docker لاحقًا.
-5. **كسر DNS:** `curl http://no-such-host.invalid` ثم قارن برسالة `curl http://box-1:9999`. رسالتان مختلفتان لمشكلتين مختلفتين: "لا أعرف الاسم" مقابل "الاسم معروف لكن لا أحد يستمع".
+3. **Von box-2 aus** (ein anderer Rechner!): `curl http://box-1:8080`. Der Name `box-1` funktioniert, weil Docker für alle Boxen im Netzwerk DNS bereitstellt.
+4. **Versuch zum Lauschen:** Stoppe den Dienst (`kill %1`) und starte ihn eingeschränkt neu: `python3 -m http.server 8080 --bind 127.0.0.1 &`.
+   Teste von box-1 (geht) und von box-2 (geht nicht). Warum? Dieselbe Idee begegnet dir später bei Docker-Ports wieder.
+5. **DNS kaputt machen:** `curl http://no-such-host.invalid`, und vergleiche mit der Meldung von `curl http://box-1:9999`. Zwei verschiedene Meldungen für zwei verschiedene Probleme: "Ich kenne den Namen nicht" gegen "Der Name ist bekannt, aber dort lauscht niemand".
 
-## التحدي: سكربت فحص صحة
-اكتب `~/healthcheck.sh` يأخذ **عنوان URL** وسيطًا أول، ويطبع `OK <url>` ويخرج بالرمز 0 إذا نجح الطلب، ويطبع `FAIL <url>` ويخرج بالرمز 1 إذا فشل.
+## Aufgabe: Ein Healthcheck-Skript
+Schreibe `~/healthcheck.sh`, das eine **URL** als erstes Argument nimmt, bei Erfolg `OK <url>` ausgibt und mit Code 0 endet, und bei Misserfolg `FAIL <url>` ausgibt und mit Code 1 endet.
 ```bash
 #!/usr/bin/env bash
 url="${1:?usage: healthcheck.sh URL}"
@@ -46,19 +46,19 @@ else
   exit 1
 fi
 ```
-لا تنسخه قبل أن تحاول كتابته بنفسك. ثم `chmod +x ~/healthcheck.sh`.
-اختبره: `./healthcheck.sh http://box-1:8080 ; echo "exit code: $?"`
+Kopiere es nicht, bevor du versucht hast, es selbst zu schreiben. Danach `chmod +x ~/healthcheck.sh`.
+Teste es: `./healthcheck.sh http://box-1:8080 ; echo "exit code: $?"`
 
-## تحقق
+## Prüfen
 ```bash
 lab-check 5
 ```
 
-## أسئلة للنقاش
-- ما الفرق بين `curl: (6) Could not resolve host` و `curl: (7) Failed to connect`؟
-- لماذا يهم **رمز الخروج** (exit code) في الأتمتة؟ (هو ما تقرأه CI وDocker healthchecks)
-- أين ستضع هذا السكربت في مشروعك؟ (ستستعمل فكرته في فحوص الصحة بـ Docker Compose.)
+## Fragen zur Diskussion
+- Was ist der Unterschied zwischen `curl: (6) Could not resolve host` und `curl: (7) Failed to connect`?
+- Warum ist der **Exit-Code** in der Automatisierung so wichtig? (Genau ihn lesen CI und Docker-Healthchecks.)
+- Wo würdest du dieses Skript in deinem Projekt einsetzen? (Die Idee dahinter nutzt du gleich in den Healthchecks von Docker Compose.)
 
-## ملاحظات للمعلّم
-- قسّم الأصدقاء أزواجًا: أحدهما يقدّم الخدمة والآخر يتصل بها.
-- الخطأ الشائع: نسيان `chmod +x`، أو وضع مسافات حول `=` في bash.
+## Hinweise für den Lehrer
+- Teile die Freunde in Paare: einer bietet den Dienst an, der andere verbindet sich.
+- Häufiger Fehler: `chmod +x` vergessen, oder Leerzeichen um das `=` in bash.

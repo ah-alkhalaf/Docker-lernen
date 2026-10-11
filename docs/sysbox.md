@@ -1,22 +1,22 @@
-# اختياري: Sysbox لصناديق فيها systemd وDocker
+# Optional: Sysbox für Boxen mit systemd und Docker
 
-> **تنبيه صدق:** هذا الملف **وصف اتجاه** ولم يُختبر في هذا المستودع. اتبع وثائق Sysbox الرسمية، وتحقق من الصور المذكورة قبل الاعتماد عليها.
+> **Ehrlicher Hinweis:** Diese Datei beschreibt **eine Richtung** und wurde in diesem Repository nicht getestet. Folge der offiziellen Sysbox-Dokumentation und prüfe die genannten Images, bevor du dich darauf verlässt.
 
-## لماذا؟
-صندوق المختبر الافتراضي حاوية عادية: لا يوجد فيها `systemd`، ولا يمكن تشغيل Docker بداخلها بأمان. [Sysbox](https://github.com/nestybox/sysbox) هو "runtime" بديل يشغّل **حاويات نظام** تتصرف كخادم صغير: فيها `systemd` ويمكن تشغيل Docker بداخلها **دون** `--privileged`، وفيها عزل user namespace أقوى.
+## Warum?
+Die Standard-Lab-Box ist ein gewöhnlicher Container: Es gibt kein `systemd` darin, und Docker lässt sich darin nicht sicher betreiben. [Sysbox](https://github.com/nestybox/sysbox) ist eine alternative Runtime, die **System-Container** startet, die sich wie ein kleiner Server verhalten: mit `systemd`, mit Docker darin **ohne** `--privileged`, und mit stärkerer Isolation über User-Namespaces.
 
-## متى تحتاجه؟
-- لتدريب حي على `systemctl` و`journalctl` (الجلسة 4).
-- لتشغيل الجلسات 6–8 **داخل** الصندوق بدل أجهزة الأصدقاء.
+## Wann brauchst du das?
+- Für echtes Üben mit `systemctl` und `journalctl` (Session 4).
+- Um die Sessions 6-8 **in** der Box laufen zu lassen statt auf den Rechnern der Freunde.
 
-## الشروط
-- مضيف **لينكس** فقط (لا يعمل على macOS أو Windows مع Docker Desktop).
-- تثبيت Sysbox حسب وثائقه، ثم التأكد من `docker info | grep -i runtimes` أنه يظهر `sysbox-runc`.
+## Voraussetzungen
+- Nur ein **Linux**-Host (läuft nicht unter macOS oder Windows mit Docker Desktop).
+- Sysbox nach seiner Dokumentation installieren und dann mit `docker info | grep -i runtimes` prüfen, dass `sysbox-runc` erscheint.
 
-## الفكرة العملية (غير مختبرة)
+## Die praktische Idee (ungetestet)
 ```bash
 docker run -d --name sysbox-box --runtime=sysbox-runc -p 2301:22 \
   nestybox/ubuntu-jammy-systemd-docker
 ```
-ثم تهيئة مستخدم وSSH داخلها حسب وثائق الصورة. وتأكد أولًا أن الصورة تتضمن `sshd`، وإلا ثبّته داخلها بـ `apt install openssh-server`.
-البديل الأنظف: ابنِ صورتك الخاصة (`FROM nestybox/ubuntu-jammy-systemd-docker`) تضيف إليها مستخدم `student` ومجلد `lab/` من هذا المستودع.
+Danach Benutzer und SSH darin einrichten, wie es die Dokumentation des Images beschreibt. Prüfe zuerst, ob das Image `sshd` mitbringt, sonst installiere es darin mit `apt install openssh-server`.
+Die sauberere Alternative: Bau dein eigenes Image (`FROM nestybox/ubuntu-jammy-systemd-docker`), das den Benutzer `student` und das Verzeichnis `lab/` aus diesem Repository hinzufügt.
