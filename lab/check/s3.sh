@@ -11,6 +11,11 @@ check "'deploy' is a member of 'devs'" "sudo usermod -aG devs deploy" bash -c 'i
 check "$D exists" "sudo mkdir -p $D" test -d "$D"
 check "$D owner is deploy" "sudo chown deploy:devs $D" bash -c "[ \"\$(stat -c %U '$D')\" = deploy ]"
 check "$D group is devs" "sudo chown deploy:devs $D" bash -c "[ \"\$(stat -c %G '$D')\" = devs ]"
-check "$D mode is 2775 (setgid + rwxrwxr-x)" "sudo chmod 2775 $D" bash -c "[ \"\$(stat -c %a '$D')\" = 2775 ]"
+# In a container, chmod as root silently drops the setgid bit when CAP_FSETID is
+# missing and root is not in the file's group. Running it as an owner who IS in
+# that group keeps the bit, so the hint has to say that.
+check "$D mode is 2775 (setgid + rwxrwxr-x)" "sudo -u deploy chmod 2775 $D
+         note: plain 'sudo chmod 2775' reports success but loses the setgid bit
+         in a container without CAP_FSETID - run it as a user in group 'devs'" bash -c "[ \"\$(stat -c %a '$D')\" = 2775 ]"
 check "$D/deploy.sh exists and is executable" "create it and chmod +x" test -x "$D/deploy.sh"
 summary
